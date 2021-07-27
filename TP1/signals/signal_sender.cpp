@@ -8,17 +8,17 @@
 using namespace std;
 
 int main(int argc, char* argv[]){
-  int pid, signal;
-  cout << "Enter pid and signal" << endl;
-  cin >> pid >> signal;
-  if(kill(pid,signal) == -1){
-    if(errno==ESRCH){
-      cout << "PID inexistente" << endl;
+    int pid, signal;
+    cout << "Enter pid and signal" << endl;
+    cin >> pid >> signal;
+    if(kill(pid,signal) == -1){
+        if(errno==ESRCH){
+            cout << "PID inexistente" << endl;
+        }
+        else {
+            cout << "Ocorreu um erro" << endl;
+        }
+        return 1;
     }
-    else {
-      cout << "Ocorreu um erro" << endl;
-    }
-    return 1;
-}
-  return 0;
+    return 0;
 }
