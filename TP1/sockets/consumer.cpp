@@ -53,29 +53,24 @@ int main(int argc, char *argv[])
         cout << "listen failed" << endl;
         return 1;
     }
+    cout << "Server is listening on port " << PORT << endl;
+    new_socket = accept(server_fd, (struct sockaddr *)&addr, (socklen_t *)&addrlen);
+    if (new_socket < 0)
+    {
+        cout << "accept failed" << endl;
+        return 1;
+    }
 
     while (true)
     {
-        new_socket = accept(server_fd, (struct sockaddr *)&addr, (socklen_t *)&addrlen);
-        if (new_socket < 0)
-        {
-            cout << "accept failed" << endl;
-        }
-        else
-        {
-            while (true)
-            {
-                valread = read(new_socket, buffer, sizeof(char) * 50);
-                int number = atoi(buffer);
-                if (number == 0)
-                    break;
-                cout << "Received: " << number << endl;
-                char text[50];
-                sprintf(text, "O número %i %s", number, isPrime(number));
-                send(new_socket, text, sizeof(char) * 50, 0);
-            }
+        valread = read(new_socket, buffer, sizeof(char) * 50);
+        int number = atoi(buffer);
+        if (number == 0)
             break;
-        }
+        cout << "Received " << number << "..." << endl;
+        char text[50];
+        sprintf(text, "O número %i%s", number, isPrime(number));
+        send(new_socket, text, sizeof(char) * 50, 0);
     }
     close(server_fd);
     return 0;

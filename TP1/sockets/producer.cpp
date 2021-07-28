@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 {
     int n;
     char host[16];
-    cout << "Insira o IPV4 do servidor:" << endl;
+    cout << "Insira o IPv4 do servidor:" << endl;
     cin >> host;
     cout << "Insira o número de números a serem enviados ao servidor:" << endl;
     cin >> n;
