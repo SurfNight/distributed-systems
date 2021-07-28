@@ -59,7 +59,7 @@ void producer()
     sprintf(buffer, "%d", start_n);
     write(my_pipe[1], &buffer, sizeof(char) * 20);
   }
-  memset(buffer, 0, sizeof(int));
+  sprintf(buffer, "%d", 0);
   write(my_pipe[1], &buffer, sizeof(char) * 20);
 }
 
