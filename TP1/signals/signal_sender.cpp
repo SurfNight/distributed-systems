@@ -9,7 +9,7 @@ using namespace std;
 
 int main(int argc, char* argv[]){
     int pid, signal;
-    cout << "Enter pid and signal" << endl;
+    cout << "Insira o PID e o sinal" << endl;
     cin >> pid >> signal;
     if(kill(pid,signal) == -1){
         if(errno==ESRCH){

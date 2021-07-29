@@ -5,6 +5,7 @@
 #include <string.h>
 #include <iostream>
 #include <math.h>
+#include "../lib/MyLib.h"
 
 using namespace std;
 
@@ -13,21 +14,12 @@ void producer();
 
 int my_pipe[2];
 
-bool isPrime(int number)
-{
-  for (int i = 2; i <= sqrt(number); i++)
-  {
-    if (number % i == 0)
-      return false;
-  }
-  return true;
-}
-
-int main(int argc, char *argv[])
+int main()
 {
   if (pipe(my_pipe))
   {
-    cout << "Ocorreu erro" << endl;
+    cout << "Ocorreu um erro inicializando o pipe" << endl;
+    return 1;
   }
   int pid = fork();
   if (pid == 0)
@@ -40,38 +32,45 @@ int main(int argc, char *argv[])
   }
   else
   {
-    cout << "Erro no fork" << endl;
+    cout << "Erro ao realizar fork" << endl;
+    return 1;
   }
+  return 0;
 }
 
 void producer()
 {
   int n;
-  cout << "Insira o número de números a serem enviados no pipe:" << endl;
+  cout << "Insira quantos números serão enviados no pipe:" << endl;
   cin >> n;
 
+  // N0 = 1
   int start_n = 1;
-  char buffer[20];
+  char buffer[30];
   for (; n > 0; n--)
   {
-    int delta = rand() % 100 + 1;
-    start_n = start_n + delta;
+    // A cada iteração, seguimos o algoritmo N = N-1 + Delta,
+    // sendo Delta um valor aleatório entre 1 e 100.
+    start_n = start_n + rand() % 100 + 1;
+    // Armazenamos esse valor num buffer como char.
     sprintf(buffer, "%d", start_n);
-    write(my_pipe[1], &buffer, sizeof(char) * 20);
+    // Escrevemos o buffer no pipe.
+    write(my_pipe[1], &buffer, sizeof(char) * 30);
   }
+  // Escrevemos um 0 no pipe para indicar que os processos terminarão 
   sprintf(buffer, "%d", 0);
-  write(my_pipe[1], &buffer, sizeof(char) * 20);
+  write(my_pipe[1], &buffer, sizeof(char) * 30);
 }
 
 void consumer()
 {
-  char buffer[20];
+  char buffer[30];
   while (true)
   {
-    read(my_pipe[0], &buffer, sizeof(char) * 20);
+    read(my_pipe[0], &buffer, sizeof(char) * 30);
     int number = atoi(buffer);
     if (number == 0)
       break;
-    cout << "O Número " << number << " é primo? " << (isPrime(number) ? "Sim" : "Não") << endl;
+    cout << number << (isPrime(number) ? "" : " não") << " é primo." << endl;
   }
 }

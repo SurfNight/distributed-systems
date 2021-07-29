@@ -9,11 +9,12 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+
 #define PORT 8080
 
 using namespace std;
 
-int main(int argc, char *argv[])
+int main()
 {
     int n;
     char host[16];
@@ -21,12 +22,12 @@ int main(int argc, char *argv[])
     cin >> host;
     cout << "Insira o número de números a serem enviados ao servidor:" << endl;
     cin >> n;
-    int sock = 0, valread;
+    int sock = 0;
     struct sockaddr_in serv_addr;
 
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
-        printf("\n Socket creation error \n");
+        cout << "Erro criando o socket." << endl;
         return -1;
     }
 
@@ -35,29 +36,34 @@ int main(int argc, char *argv[])
 
     if (inet_pton(AF_INET, host, &serv_addr.sin_addr) <= 0)
     {
-        printf("\nInvalid address/ Address not supported \n");
+        cout << "Erro no endereço IPv4." << endl;
         return -1;
     }
 
     if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
     {
-        printf("\nConnection Failed \n");
+        printf("Erro ao conectar no socket do servidor.");
         return -1;
     }
 
+    // N0 = 1
     int start_n = 1;
-    char buffer[50];
+    char buffer[30];
     for (; n > 0; n--)
     {
-        int delta = rand() % 100 + 1;
-        start_n = start_n + delta;
+        // A cada iteração, seguimos o algoritmo N = N-1 + Delta,
+        // sendo Delta um valor aleatório entre 1 e 100.
+        start_n = start_n + rand() % 100 + 1;
+        // Armazenamos esse valor num buffer como char.
         sprintf(buffer, "%d", start_n);
-        cout << "Sent " << start_n << "..." << endl;
-        send(sock, buffer, sizeof(char) * 50, 0);
-        valread = read(sock, buffer, 50);
+        cout << "Sending " << start_n << "..." << endl;
+        // Enviamos o buffer para o socket.
+        send(sock, buffer, sizeof(char) * 30, 0);
+        read(sock, buffer, 30);
         cout << "[CONSUMER]: " << buffer << endl;
     }
+    // Enviamos um 0 para o socket para indicar que os processos terminarão
     sprintf(buffer, "%d", 0);
-    send(sock, buffer, sizeof(char) * 50, 0);
+    send(sock, buffer, sizeof(char) * 30, 0);
     return 0;
 }
