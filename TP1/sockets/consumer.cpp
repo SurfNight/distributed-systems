@@ -17,8 +17,8 @@ using namespace std;
 
 int main()
 {
-    char buffer[20];
-    int server_fd, new_socket;
+    char buffer[30];
+    int server_fd, new_socket, valread;
     struct sockaddr_in addr;
     int addrlen = sizeof(addr);
     
@@ -58,14 +58,14 @@ int main()
 
     while (true)
     {
-        read(new_socket, buffer, sizeof(char) * 20);
+        valread = read(new_socket, buffer, sizeof(char) * 30);
         int number = atoi(buffer);
         if (number == 0)
             break;
         cout << "Received " << number << "..." << endl;
-        char response[20];
+        char response[30];
         sprintf(response, "%i%s", number, (isPrime(number) ? " é primo." : " não é primo."));
-        send(new_socket, response, sizeof(char) * 20, 0);
+        send(new_socket, response, sizeof(char) * 30, 0);
     }
     // Fechando socket
     close(server_fd);

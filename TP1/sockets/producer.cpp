@@ -16,11 +16,11 @@ using namespace std;
 
 int main()
 {
-    int n;
+    int n, valread;
     char host[16];
     cout << "Insira o IPv4 do servidor:" << endl;
     cin >> host;
-    cout << "Insira o número de números a serem enviados ao servidor:" << endl;
+    cout << "Insira quantos números serão enviados ao servidor:" << endl;
     cin >> n;
     int sock = 0;
     struct sockaddr_in serv_addr;
@@ -59,7 +59,7 @@ int main()
         cout << "Sending " << start_n << "..." << endl;
         // Enviamos o buffer para o socket.
         send(sock, buffer, sizeof(char) * 30, 0);
-        read(sock, buffer, 30);
+        valread = read(sock, buffer, 30);
         cout << "[CONSUMER]: " << buffer << endl;
     }
     // Enviamos um 0 para o socket para indicar que os processos terminarão
