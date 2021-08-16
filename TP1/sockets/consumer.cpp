@@ -9,7 +9,7 @@
 #include <sys/socket.h>
 #include <stdlib.h>
 #include <netinet/in.h>
-#include "../lib/MyLib.h"
+#include "../../lib/MyLib.h"
 
 #define PORT 8080
 

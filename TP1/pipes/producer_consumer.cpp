@@ -5,7 +5,7 @@
 #include <string.h>
 #include <iostream>
 #include <math.h>
-#include "../lib/MyLib.h"
+#include "../../lib/MyLib.h"
 
 using namespace std;
 
