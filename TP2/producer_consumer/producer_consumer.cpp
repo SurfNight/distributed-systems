@@ -6,7 +6,7 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
-#include <semaphore>
+#include <semaphore.h>
 #include <math.h>
 #include "../../lib/MyLib.h"
 
@@ -15,9 +15,9 @@ int memory_size;
 int *memory;
 int consumed;
 
-binary_semaphore mutex(0);
-counting_semaphore empty_semaphore(0);
-counting_semaphore full(0);
+sem_t mutex;
+sem_t empty_semaphore;
+sem_t full;
 
 int generateRandomNumber() {
     // Generate a random number between 1 and 10000000
@@ -43,10 +43,7 @@ int* createZeroedArray(int size)
 void fullizeSemaphore()
 {
     // function that sets the semaphore "full" to its maximum size
-    for (int i = 0; i < memory_size; i++)
-    {
-        full.acquire();
-    }
+    sem_init(&full,1,memory_size);
 }
 
 void addResource(int number)
@@ -86,25 +83,25 @@ void producer()
 {
     // generate a resource
     int number = generateRandomNumber();
-    empty_semaphore.acquire();
-    mutex.acquire();
+    sem_wait(&empty_semaphore);
+    sem_wait(&mutex);
     // add resource to shared memory
     addResource(number);
-    mutex.release();
-    full.release();
+    sem_post(&mutex);
+    sem_post(&full);
 }
 
 void consumer()
 {   
     int number;
-    full.acquire();
-    mutex.acquire();
+    sem_wait(&full);
+    sem_wait(&mutex);
     consume();
     if(consumed == 10000) {
         exit(0);
     }
-    mutex.release();
-    empty_semaphore.release();
+    sem_post(&mutex);
+    sem_post(&empty_semaphore);
 }
 
 void createProducerThreads(int num_threads) {
