@@ -19,18 +19,20 @@ sem_t mutex;
 sem_t empty_semaphore;
 sem_t full;
 
-int generateRandomNumber() {
+int generateRandomNumber()
+{
     // Generate a random number between 1 and 10000000
     return (rand() % 10000000) + 1;
 }
 
-
 void addResource(int number)
-{   
+{
     // function that receives a number and stores it at the shared memory
-    for (int i = 0; i < memory_size; i++) {
+    for (int i = 0; i < memory_size; i++)
+    {
         // find a free space of the memory to store the number
-        if (memory[i] == 0) {
+        if (memory[i] == 0)
+        {
             memory[i] = number;
             // leave the loop afterwards
             break;
@@ -71,44 +73,52 @@ void producer()
 }
 
 void consumer()
-{   
+{
     int number;
     sem_wait(&full);
     sem_wait(&mutex);
     consume();
-    if(consumed == 10000) {
+    if (consumed == 10000)
+    {
         exit(0);
     }
     sem_post(&mutex);
     sem_post(&empty_semaphore);
 }
 
-void createProducerThreads(int num_threads) {
+void createProducerThreads(int num_threads)
+{
     // create num_threads threads that will produce numbers
-    for (int i = 0; i < num_threads; i++) {
-        thread t(&producer);//creates a thread given a function pointer
+    for (int i = 0; i < num_threads; i++)
+    {
+        thread t(&producer); //creates a thread given a function pointer
     }
 }
 
-void createConsumerThreads(int num_threads) {
+void createConsumerThreads(int num_threads)
+{
     // create num_threads threads that will consume numbers
-    for (int i = 0; i < num_threads; i++) {
-        thread t(&consumer);//creates a thread given a function pointer
+    for (int i = 0; i < num_threads; i++)
+    {
+        thread t(&consumer); //creates a thread given a function pointer
     }
 }
 
 int main()
-{   
+{
+    sem_init(&mutex, 1, 1);
+
     srand(time(NULL));
     int Np, Nc;
     cout << "Insira o tamanho da memória, o número de produtores e o número de consumidores" << endl;
     cin >> memory_size >> Np >> Nc;
-    int *memory = new int[memory_size]{0};//creates a zeroed array of size "memory_size"
-    sem_init(&full,1,memory_size);//sets the semaphore "full" to its maximum size
+    int *memory = new int[memory_size]{0}; //creates a zeroed array of size "memory_size"
+    sem_init(&full, 1, memory_size);       //sets the semaphore "full" to its maximum size
     // creating threads
     createConsumerThreads(Nc);
     createProducerThreads(Np);
-    while(true) {
+    while (true)
+    {
         // waiting for 10000 numbers to be consumed
     }
 }
