@@ -9,6 +9,7 @@ TARGET = producer_consumer
 
 all: $(TARGET)
 
+$(TARGET): $(TARGET).cpp
 	$(CC) $(TARGET).cpp ../../lib/MyLib.* -o $(TARGET) $(CFLAGS)
 
 clean:

@@ -2,14 +2,15 @@
 CC = g++
 
 # compiler flags:
-CFLAGS = -lpthread
+CFLAGS  = -lpthread
 
 # the build target executable:
 TARGET = spin_lock
 
 all: $(TARGET)
 
-	$(CC) -lpthread $(TARGET).cpp -o $(TARGET)
+$(TARGET): $(TARGET).cpp
+	$(CC) $(CFLAGS) $(TARGET).cpp -o $(TARGET)
 
 clean:
 	$(RM) $(TARGET)
