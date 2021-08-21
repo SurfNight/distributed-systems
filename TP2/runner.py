@@ -26,12 +26,12 @@ def process(problem: str) -> str:
         'spin_lock': run_spin_lock
     }
     with open(data_file_path, "a") as data_file:
-        posibilities[problem](data_file)
+        posibilities[problem](data_file, data_file_path)
 
     return data_file_path
 
 
-def run_producer_consumer(data_file) -> None:
+def run_producer_consumer(data_file, path=None) -> None:
     n_values = [1, 2, 4, 8, 16, 32]
     threads_combinations = [(1, 1), (1, 2), (1, 4), (1, 8), (1, 16),
                             (2, 1),(4, 1), (8, 1), (16, 1)]
@@ -44,9 +44,12 @@ def run_producer_consumer(data_file) -> None:
                     ret_code = process.wait()
                     print("producer_consumer ran successfully with parameters N = {}, Np = {}, Nc = {} and return code = {}" \
                         .format(n_value, thread_combination[0], thread_combination[1], ret_code))
+                    
+    # clear thrash from output file
+    subprocess.call('grep -v "CONSUMER:" {} > tmpfile && mv tmpfile {}'.format(path, path), shell=True)
 
 
-def run_spin_lock(data_file) -> None:
+def run_spin_lock(data_file, *args) -> None:
     n_values = [10**7, 10**8, 10**9]
     threads_qts = [1, 2, 4, 8, 16, 32, 64, 128, 256]
     for n_value in n_values:

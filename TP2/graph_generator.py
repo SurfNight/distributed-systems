@@ -55,11 +55,16 @@ def build_graph(df: pd.DataFrame) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    # data_file = './producer_consumer/data.csv'
-    # df = parse_csv(data_file)
-    # image = build_graph(df)
-    # save_graph(image, "./producer_consumer/graph")
-    # tempo medio por K - cada linha = N
+    data_file = './producer_consumer/data.csv'
+    df = parse_csv(data_file)
+    image = build_graph(df)
+    save_graph(image, "./producer_consumer/graph")
+    
+    data_file = './producer_consumer/data_sec_mode.csv'
+    df = parse_csv(data_file)
+    image = build_graph(df)
+    save_graph(image, "./producer_consumer/graph_sec_mode")
+
     df = pd.read_csv('./spin_lock/data.csv', sep="|", names=['K', 'N', 'time'])
     df = df.groupby(['K', 'N']).mean().reset_index()
     fig = df.pivot(index='K', columns='N',
