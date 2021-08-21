@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <thread>
-#include <chrono>
+#include "time.h"
 
 using namespace std;
 
@@ -33,10 +33,8 @@ SpinLock my_spinlock;
 
 int generateRandomNumber()
 {
-    int number = (rand() % 200) - 100;
-    cout << number << endl;
     // Generate a random number between 100 and -100
-    return number;
+    return (rand() % 200) - 100;
 }
 
 // função somadora - summer
@@ -85,12 +83,16 @@ int main()
 {
     srand(time(NULL));
     int K, N;
-    cout << "Insira o número de threads e o tamanho da memória" << endl;
+    // "Insira o número de threads e o tamanho da memória"
     cin >> K >> N;
     memory = new char[N]; //creates a zeroed array of size "N"
     fill_random(memory, N);
+    clock_t before, after;
+    before = clock();
     createSummerThreads(K, memory, N);
     joinSummerThreads(K);
-    cout << "Deu isso aqui: " << accumulator << endl;
+    after = clock();
+    double time_spent = ((double)(after - before)) / CLOCKS_PER_SEC;
+    cout << K << "|" << N << "|" << time_spent << endl;
     return 0;
 }

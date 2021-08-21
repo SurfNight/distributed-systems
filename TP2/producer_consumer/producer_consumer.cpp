@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <thread>
-#include <chrono>
+#include "time.h"
 #include <semaphore.h>
 #include <math.h>
 #include "../../lib/MyLib.h"
@@ -10,15 +10,16 @@
 using namespace std;
 
 int memory_size;
+clock_t before, after;
 int *memory;
 int consumed;
-bool consumed_all = false;
+int Np, Nc;
 
 thread **consumer_threads;
 thread **producer_threads;
 
 sem_t mutex;
-sem_t empty;
+sem_t empty_sem;
 sem_t full;
 
 int generateRandomNumber()
@@ -52,7 +53,7 @@ void consume()
         // find a number to consume (number != 0)
         if (number != 0)
         {
-            cout << "CONSUMER: O número " << number << (isPrime(number) ? "" : " não") << " é primo. " << consumed + 1 << endl;
+            cout << "CONSUMER: O número " << number << (isPrime(number) ? "" : " não") << " é primo. " << endl;
             // consume number and set its memory location to 0
             memory[i] = 0;
             // add 1 to consumed count
@@ -64,11 +65,11 @@ void consume()
 
 void producer()
 {
-    while (!consumed_all)
+    while (true)
     {
         // generate a resource
         int number = generateRandomNumber();
-        sem_wait(&empty);
+        sem_wait(&empty_sem);
         sem_wait(&mutex);
         // add resource to shared memory
         addResource(number);
@@ -79,7 +80,7 @@ void producer()
 
 void consumer()
 {
-    while (!consumed_all)
+    while (true)
     {
         int number;
         sem_wait(&full);
@@ -87,10 +88,13 @@ void consumer()
         consume();
         if (consumed == 10000)
         {
-            consumed_all = true;
+            after = clock();
+            double time_spent = ((double)(after - before)) / CLOCKS_PER_SEC;
+            cout << memory_size << "|" << Np << "|" << Nc << "|" << time_spent << endl;
+            exit(0);
         }
         sem_post(&mutex);
-        sem_post(&empty);
+        sem_post(&empty_sem);
     }
 }
 
@@ -132,16 +136,17 @@ void joinProducerThreads(int Np)
 int main()
 {
     srand(time(NULL));
-    int Np, Nc;
-    cout << "Insira o tamanho da memória, o número de produtores e o número de consumidores" << endl;
+    // "Insira o tamanho da memória, o número de produtores e o número de consumidores"
     cin >> memory_size >> Np >> Nc;
     memory = new int[memory_size]{0}; //creates a zeroed array of size "memory_size"
     sem_init(&mutex, 1, 1);
     sem_init(&full, 1, memory_size); //sets the semaphore "full" to its maximum size
-    sem_init(&empty, 1, 0);
+    sem_init(&empty_sem, 1, 0);
     // creating threads
+    before = clock();
     createConsumerThreads(Nc);
     createProducerThreads(Np);
     joinConsumerThreads(Nc);
     joinProducerThreads(Np);
+    return 0;
 }
