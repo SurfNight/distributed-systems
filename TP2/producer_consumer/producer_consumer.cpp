@@ -1,8 +1,5 @@
-#include <sys/signalfd.h>
-#include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <string.h>
 #include <iostream>
 #include <thread>
 #include <chrono>

@@ -2,14 +2,14 @@
 CC = g++
 
 # compiler flags:
-CFLAGS  = -lpthread
+CFLAGS = -lpthread
 
 # the build target executable:
-TARGET = producer_consumer
+TARGET = spin_lock
 
 all: $(TARGET)
 
-	$(CC) $(TARGET).cpp ../../lib/MyLib.* -o $(TARGET) $(CFLAGS)
+	$(CC) -lpthread $(TARGET).cpp -o $(TARGET)
 
 clean:
 	$(RM) $(TARGET)
