@@ -3,6 +3,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <queue>
+#include <string.h>
 #include <tuple>
 
 #define PORT 8080
@@ -12,21 +13,28 @@
 using namespace std;
 
 void terminal();
-char *encode(char *, int);
+char *encode(int, int);
+void decode(char *, int *, int *);
 
-int server_fd;
+enum
+{
+    REQUEST = 1,
+    GRANT,
+    RELEASE
+};
 
 class mutualExclusion
 {
 private:
     queue<tuple<int, struct sockaddr_in>> mutexQ;
     bool acquired = false;
+    int server_fd;
     int grantNext()
     {
         acquired = true;
         tuple<int, struct sockaddr_in> next = mutexQ.front();
         mutexQ.pop();
-        char *msg = encode("GRANTED", get<0>(next));
+        char *msg = encode(GRANT, get<0>(next));
         int addrlen = sizeof(get<1>(next));
         sendto(server_fd, (const char *)msg, sizeof(char) * F,
                MSG_CONFIRM, (const struct sockaddr *)&get<1>(next),
@@ -34,7 +42,7 @@ private:
     }
 
 public:
-    mutualExclusion();
+    mutualExclusion(int fd) : server_fd(fd) {}
     int request(int p_id, struct sockaddr_in p_ip)
     {
         mutexQ.push(make_tuple(p_id, p_ip));
@@ -84,7 +92,7 @@ void terminal()
         }
         else if (command == 2)
         {
-            attendedCount();
+            grantCount();
         }
         else if (command == 3)
         {
@@ -99,7 +107,7 @@ void terminal()
 
 int listener()
 {
-    mutualExclusion mmutex;
+    int server_fd;
     char buffer[F];
     struct sockaddr_in addr, cliaddr;
     int addrlen = sizeof(addr);
@@ -110,6 +118,8 @@ int listener()
         cout << "Error criando o socket" << endl;
         return 1;
     }
+
+    mutualExclusion mmutex(server_fd);
 
     // Setamos as opções do socket
     addr.sin_family = AF_INET;
@@ -133,13 +143,14 @@ int listener()
                      MSG_WAITALL, (struct sockaddr *)&cliaddr,
                      (socklen_t *)&addrlen);
 
+        int msg, process;
         decode(buffer, &msg, &process);
 
-        if (msg == "REQUEST")
+        if (msg == REQUEST)
         {
             mmutex.request(process, cliaddr);
         }
-        else if (msg == "RELEASE")
+        else if (msg == RELEASE)
         {
             mmutex.release();
         }
@@ -149,4 +160,16 @@ int listener()
         }
     }
     return 0;
+}
+char *encode(int msg, int id)
+{
+    char *encoded = new char[F]{0};
+    string temp = to_string(msg) + '|' + to_string(id) + '|';
+    temp.copy(encoded, temp.length(), 0);
+    return encoded;
+}
+void decode(char *buffer, int *message, int *id)
+{
+    *message = stoi(strtok(buffer, "|"));
+    *id = stoi(strtok(NULL, "|"));
 }
