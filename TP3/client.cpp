@@ -6,7 +6,7 @@ class remoteMutex
 private:
     /* data */
 public:
-    remoteMutex(string coord_addr);
+    remoteMutex(string coord_ip);
     int acquire();
     int release();
     ~remoteMutex();
