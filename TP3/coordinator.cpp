@@ -5,6 +5,8 @@
 #include <queue>
 #include <string.h>
 #include <tuple>
+#include <mutex>
+#include <map>
 
 #define PORT 8080
 #define MAXLINE 1024
@@ -23,36 +25,51 @@ enum
     RELEASE
 };
 
-class mutualExclusion
+remoteMutex rmutex;
+
+class remoteMutex
 {
 private:
-    queue<tuple<int, struct sockaddr_in>> mutexQ;
+    queue<tuple<int, int>> mutexQ;
+    mutex mtx;
     bool acquired = false;
-    int server_fd;
+    map<int, int> granted_map;
     int grantNext()
     {
         acquired = true;
-        tuple<int, struct sockaddr_in> next = mutexQ.front();
+        tuple<int, int> next = mutexQ.front();
         mutexQ.pop();
         char *msg = encode(GRANT, get<0>(next));
-        int addrlen = sizeof(get<1>(next));
-        sendto(server_fd, (const char *)msg, sizeof(char) * F,
-               MSG_CONFIRM, (const struct sockaddr *)&get<1>(next),
-               addrlen);
+        send(get<1>(next), msg, sizeof(char) * F, 0);
+        if (granted_map.find(get<0>(next)) == granted_map.end())
+        {
+            granted_map[get<0>(next)] = 1;
+        }
+        else
+        {
+            granted_map[get<0>(next)] += 1;
+        }
     }
 
 public:
-    mutualExclusion(int fd) : server_fd(fd) {}
-    int request(int p_id, struct sockaddr_in p_ip)
+    remoteMutex();
+    int request(int p_id, int p_fd)
     {
-        mutexQ.push(make_tuple(p_id, p_ip));
+        mtx.lock();
+        mutexQ.push(make_tuple(p_id, p_fd));
+        if (granted_map.find(p_id) == granted_map.end())
+        {
+            granted_map[p_id] = 0;
+        }
         if (!acquired)
         {
             grantNext();
         }
+        mtx.unlock();
     }
     int release()
     {
+        mtx.lock();
         if (mutexQ.empty())
         {
             acquired = false;
@@ -61,6 +78,24 @@ public:
         {
             grantNext();
         }
+        mtx.unlock();
+    }
+    void printQueue()
+    {
+        mtx.lock();
+        queue<tuple<int, int>> copy = mutexQ;
+        while (!copy.empty())
+        {
+            cout << get<0>(copy.front()) << " ";
+            copy.pop();
+        }
+        std::cout << std::endl;
+        mtx.unlock();
+    }
+    void printGrantCount()
+    {
+        mtx.lock();
+        mtx.unlock();
     }
 };
 
@@ -88,11 +123,11 @@ void terminal()
         cin >> command;
         if (command == 1)
         {
-            printQueue();
+            rmutex.printQueue();
         }
         else if (command == 2)
         {
-            grantCount();
+            rmutex.printGrantCount();
         }
         else if (command == 3)
         {
@@ -109,17 +144,15 @@ int listener()
 {
     int server_fd;
     char buffer[F];
-    struct sockaddr_in addr, cliaddr;
+    struct sockaddr_in addr;
     int addrlen = sizeof(addr);
 
-    // Criando Socket UDP com IPv4
-    if ((server_fd = socket(AF_INET, SOCK_DGRAM, 0)) == 0)
+    // Criando Socket TCP com IPv4
+    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
     {
         cout << "Error criando o socket" << endl;
         return 1;
     }
-
-    mutualExclusion mmutex(server_fd);
 
     // Setamos as opções do socket
     addr.sin_family = AF_INET;
@@ -133,30 +166,50 @@ int listener()
         cout << "Erro realizando bind" << endl;
         return 1;
     }
+    if (listen(server_fd, 1) < 0)
+    {
+        cout << "Erro inicializando listen" << endl;
+        return 1;
+    }
+    cout << "Server listening na porta " << PORT << endl;
 
-    int n;
-
-    int addrlen = sizeof(cliaddr); //len is value/resuslt
     while (true)
     {
-        n = recvfrom(server_fd, (char *)buffer, MAXLINE,
-                     MSG_WAITALL, (struct sockaddr *)&cliaddr,
-                     (socklen_t *)&addrlen);
-
-        int msg, process;
-        decode(buffer, &msg, &process);
-
-        if (msg == REQUEST)
+        int new_socket = accept(server_fd, (struct sockaddr *)&addr, (socklen_t *)&addrlen);
+        if (new_socket < 0)
         {
-            mmutex.request(process, cliaddr);
+            cout << "Erro realizando accept de nova conexão" << endl;
+            return 1;
         }
-        else if (msg == RELEASE)
+        pid_t connection_pid = fork();
+        if (connection_pid == -1)
         {
-            mmutex.release();
+            perror("fork");
+            exit(EXIT_FAILURE);
         }
-        else
+        else if (connection_pid == 0)
         {
-            cout << "Invalid message\n";
+            while (true)
+            {
+                int valread = read(new_socket, buffer, sizeof(char) * F);
+                if (valread <= 0)
+                    break;
+                int msg, process;
+                decode(buffer, &msg, &process);
+
+                if (msg == REQUEST)
+                {
+                    rmutex.request(process, new_socket);
+                }
+                else if (msg == RELEASE)
+                {
+                    rmutex.release();
+                }
+                else
+                {
+                    cout << "Invalid message\n";
+                }
+            }
         }
     }
     return 0;
