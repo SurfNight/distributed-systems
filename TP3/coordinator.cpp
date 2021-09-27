@@ -3,29 +3,15 @@
 #include <iostream>
 #include <unistd.h>
 #include <queue>
-#include <string.h>
 #include <tuple>
 #include <mutex>
 #include <map>
-
-#define PORT 8080
-#define MAXLINE 1024
-#define F 30
+#include "../lib/MyLib.h"
 
 using namespace std;
 
 void terminal();
-char *encode(int, int);
-void decode(char *, int *, int *);
-
-enum
-{
-    REQUEST = 1,
-    GRANT,
-    RELEASE
-};
-
-remoteMutex rmutex;
+int listener();
 
 class remoteMutex
 {
@@ -34,7 +20,7 @@ private:
     mutex mtx;
     bool acquired = false;
     map<int, int> granted_map;
-    int grantNext()
+    void grantNext()
     {
         acquired = true;
         tuple<int, int> next = mutexQ.front();
@@ -52,8 +38,8 @@ private:
     }
 
 public:
-    remoteMutex();
-    int request(int p_id, int p_fd)
+    remoteMutex(){};
+    void request(int p_id, int p_fd)
     {
         mtx.lock();
         mutexQ.push(make_tuple(p_id, p_fd));
@@ -67,7 +53,7 @@ public:
         }
         mtx.unlock();
     }
-    int release()
+    void release()
     {
         mtx.lock();
         if (mutexQ.empty())
@@ -95,9 +81,15 @@ public:
     void printGrantCount()
     {
         mtx.lock();
+        for (auto it = granted_map.cbegin(); it != granted_map.cend(); ++it)
+        {
+            std::cout << it->first << " " << it->second << "\n";
+        }
         mtx.unlock();
     }
 };
+
+remoteMutex rmutex;
 
 int main()
 {
@@ -213,16 +205,4 @@ int listener()
         }
     }
     return 0;
-}
-char *encode(int msg, int id)
-{
-    char *encoded = new char[F]{0};
-    string temp = to_string(msg) + '|' + to_string(id) + '|';
-    temp.copy(encoded, temp.length(), 0);
-    return encoded;
-}
-void decode(char *buffer, int *message, int *id)
-{
-    *message = stoi(strtok(buffer, "|"));
-    *id = stoi(strtok(NULL, "|"));
 }
