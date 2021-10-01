@@ -156,7 +156,6 @@ int listener()
         return 1;
     }
     cout << "Server listening na porta " << PORT << endl;
-    thread **connections_thredas = new thread *[100];
     while (true)
     {
         int new_socket = accept(server_fd, (struct sockaddr *)&addr, (socklen_t *)&addrlen);
@@ -165,7 +164,7 @@ int listener()
             cout << "Erro realizando accept de nova conexão" << endl;
             return 1;
         }
-        auto fconnection = [&]()
+        auto fconnection = [&, new_socket]()
         {
             while (true)
             {
