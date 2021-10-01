@@ -5,6 +5,7 @@
 #include <queue>
 #include <tuple>
 #include <mutex>
+#include <thread>
 #include <map>
 #include "../lib/MyLib.h"
 
@@ -83,7 +84,7 @@ public:
         mtx.lock();
         for (auto it = granted_map.cbegin(); it != granted_map.cend(); ++it)
         {
-            std::cout << it->first << " " << it->second << "\n";
+            std::cout << it->first << " | " << it->second << "\n";
         }
         mtx.unlock();
     }
@@ -93,18 +94,9 @@ remoteMutex rmutex;
 
 int main()
 {
-    pid_t terminal_pid = fork();
-
-    if (terminal_pid == -1)
-    {
-        perror("fork");
-        exit(EXIT_FAILURE);
-    }
-    else if (terminal_pid == 0)
-    {
-        listener();
-    }
+    thread(listener).detach();
     terminal();
+    return 1;
 }
 
 void terminal()
@@ -123,7 +115,7 @@ void terminal()
         }
         else if (command == 3)
         {
-            exit(1);
+            return;
         }
         else
         {
@@ -164,7 +156,7 @@ int listener()
         return 1;
     }
     cout << "Server listening na porta " << PORT << endl;
-
+    thread **connections_thredas = new thread *[100];
     while (true)
     {
         int new_socket = accept(server_fd, (struct sockaddr *)&addr, (socklen_t *)&addrlen);
@@ -173,13 +165,7 @@ int listener()
             cout << "Erro realizando accept de nova conexão" << endl;
             return 1;
         }
-        pid_t connection_pid = fork();
-        if (connection_pid == -1)
-        {
-            perror("fork");
-            exit(EXIT_FAILURE);
-        }
-        else if (connection_pid == 0)
+        auto fconnection = [&]()
         {
             while (true)
             {
@@ -202,7 +188,8 @@ int listener()
                     cout << "Invalid message\n";
                 }
             }
-        }
+        };
+        thread(fconnection).detach();
     }
     return 0;
 }
