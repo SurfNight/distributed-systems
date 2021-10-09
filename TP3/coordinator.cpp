@@ -28,6 +28,7 @@ private:
         mutexQ.pop();
         char *msg = encode(GRANT, get<0>(next));
         send(get<1>(next), msg, sizeof(char) * F, 0);
+        cout << "GRANTED to " << get<0>(next) << endl;
         if (granted_map.find(get<0>(next)) == granted_map.end())
         {
             granted_map[get<0>(next)] = 1;
@@ -56,6 +57,7 @@ public:
     }
     void release()
     {
+        cout << "RELEASED" << endl;
         mtx.lock();
         if (mutexQ.empty())
         {
