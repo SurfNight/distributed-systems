@@ -17,8 +17,8 @@ int listener();
 class remoteMutex
 {
 private:
-    queue<tuple<int, int>> mutexQ;
     mutex mtx;
+    queue<tuple<int, int>> mutexQ;
     bool acquired = false;
     map<int, int> granted_map;
     void grantNext()
@@ -57,8 +57,8 @@ public:
     }
     void release()
     {
-        cout << "RELEASED" << endl;
         mtx.lock();
+        cout << "RELEASED" << endl;
         if (mutexQ.empty())
         {
             acquired = false;
@@ -182,6 +182,7 @@ int listener()
                 }
                 else if (msg == RELEASE)
                 {
+                    cout << process << " ";
                     rmutex.release();
                 }
                 else

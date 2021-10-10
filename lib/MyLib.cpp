@@ -3,7 +3,6 @@
 #include <math.h>
 #include "MyLib.h"
 #include <string>
-#include <string.h>
 
 using namespace std;
 
@@ -25,6 +24,11 @@ char *encode(int msg, int id)
 }
 void decode(char *buffer, int *message, int *id)
 {
-  *message = stoi(strtok(buffer, "|"));
-  *id = stoi(strtok(NULL, "|"));
+  string delimiter = "|";
+  string s(buffer);
+  size_t pipe1 = s.find(delimiter);
+  *message = stoi(s.substr(0, pipe1));
+  s.erase(0, pipe1 + 1);
+  size_t pipe2 = s.find(delimiter);
+  *id = stoi(s.substr(0, pipe2));
 }
