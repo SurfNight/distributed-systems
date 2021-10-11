@@ -10,14 +10,16 @@
 #include <stdlib.h>
 #include <chrono>
 
-
 using namespace std;
 
+//classe que abstrai o remoteMutex para um mutex comum
 class remoteMutex
 {
 private:
     int sock;
+
 public:
+    //no construtor estabelecemos conexão com o coordenador
     remoteMutex(char *coord_ip)
     {
         int valread;
@@ -44,19 +46,23 @@ public:
             return;
         }
     }
+    //a função aquire envia uma mensagem do tipo "1|pid|00000..." para o coordenador
+    //e aguardad e forma bloqueante a mensagem GRANT.
     int acquire()
     {
         char *buffer = encode(REQUEST, getpid());
         send(sock, buffer, sizeof(char) * 30, 0);
         int valread = read(sock, buffer, sizeof(char) * 30);
         delete buffer;
-        if (valread == 0) {
+        if (valread == 0)
+        {
             return 0;
         }
 
         return 1;
     }
-
+    //a função aquire envia uma mensagem do tipo "3|pid|00000..." para o coordenador
+    //avisando RELEASE do lock
     int release()
     {
         char *buffer = encode(RELEASE, getpid());
@@ -75,11 +81,12 @@ int main(int argc, char *argv[])
     ofstream myfile;
     for (int i = 0; i < r; i++)
     {
+        //se a conexão for fechada acquire retorna 1
         if (!rm.acquire())
             return -1;
         myfile.open("resultado.txt", ios::app);
         auto current_time = chrono::high_resolution_clock::now();
-        myfile << chrono::duration_cast<chrono::nanoseconds>(chrono::system_clock::now().time_since_epoch()).count()  << "|" << getpid() << "\n";
+        myfile << chrono::duration_cast<chrono::nanoseconds>(chrono::system_clock::now().time_since_epoch()).count() << "|" << getpid() << "\n";
         myfile.close();
         rm.release();
         sleep(k);

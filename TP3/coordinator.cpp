@@ -14,13 +14,15 @@ using namespace std;
 void terminal();
 int listener();
 
+//essa classe é responsável por controlar os acessos concorrentes ao lock
 class remoteMutex
 {
 private:
-    mutex mtx;
-    queue<tuple<int, int>> mutexQ;
-    bool acquired = false;
-    map<int, int> granted_map;
+    mutex mtx;                     //mutex usado para manipular a fila o estado do remoteMutex
+    queue<tuple<int, int>> mutexQ; //fila, cada entrada é uma tupla <socket,pid>
+    bool acquired = false;         //estado do mutex
+    map<int, int> granted_map;     //mapeia quantas vezes cada processo recebeu o lock
+    //envia GRANT para o primeiro proceso da fila
     void grantNext()
     {
         acquired = true;
@@ -29,7 +31,7 @@ private:
         char *msg = encode(GRANT, get<0>(next));
         send(get<1>(next), msg, sizeof(char) * F, 0);
         cout << "GRANTED to " << get<0>(next) << endl;
-        if (granted_map.find(get<0>(next)) == granted_map.end())
+        if (granted_map.find(get<0>(next)) == granted_map.end()) //se o processo ainda não está no mapa
         {
             granted_map[get<0>(next)] = 1;
         }
@@ -41,17 +43,18 @@ private:
 
 public:
     remoteMutex(){};
+    //chamado quando um processo pede o lock
     void request(int p_id, int p_fd)
     {
         mtx.lock();
         mutexQ.push(make_tuple(p_id, p_fd));
-        if (granted_map.find(p_id) == granted_map.end())
+        if (granted_map.find(p_id) == granted_map.end()) //se o processo ainda não está no mapa
         {
             granted_map[p_id] = 0;
         }
         if (!acquired)
         {
-            grantNext();
+            grantNext(); //se a fila estiver vazia o processo recebe GRANT imediatamente
         }
         mtx.unlock();
     }
@@ -96,8 +99,8 @@ remoteMutex rmutex;
 
 int main()
 {
-    thread(listener).detach();
-    terminal();
+    thread(listener).detach(); //criamos uma thread para funçao listener()
+    terminal();                //a main thread executa funçao terminal
     return 1;
 }
 
@@ -165,6 +168,7 @@ int listener()
             cout << "Erro realizando accept de nova conexão" << endl;
             return 1;
         }
+        //funçao lambda que é executada para tratar cada socket novo
         auto fconnection = [&, new_socket]()
         {
             char buffer[F];
