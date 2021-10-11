@@ -8,6 +8,8 @@
 #include <ctime>
 #include "../lib/MyLib.h"
 #include <stdlib.h>
+#include <chrono>
+
 
 using namespace std;
 
@@ -15,7 +17,6 @@ class remoteMutex
 {
 private:
     int sock;
-    /* data */
 public:
     remoteMutex(char *coord_ip)
     {
@@ -49,15 +50,13 @@ public:
         send(sock, buffer, sizeof(char) * 30, 0);
         int valread = read(sock, buffer, sizeof(char) * 30);
         delete buffer;
-        if (valread != 0)
-        {
-            return 1;
-        }
-        else
-        {
+        if (valread == 0) {
             return 0;
         }
+
+        return 1;
     }
+
     int release()
     {
         char *buffer = encode(RELEASE, getpid());
@@ -79,7 +78,8 @@ int main(int argc, char *argv[])
         if (!rm.acquire())
             return -1;
         myfile.open("resultado.txt", ios::app);
-        myfile << time(0) << " " << getpid() << "\n";
+        auto current_time = chrono::high_resolution_clock::now();
+        myfile << chrono::duration_cast<chrono::nanoseconds>(chrono::system_clock::now().time_since_epoch()).count()  << "|" << getpid() << "\n";
         myfile.close();
         rm.release();
         sleep(k);
