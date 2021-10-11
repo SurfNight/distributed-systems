@@ -17,6 +17,5 @@ client:
 $(TARGET_CLIENT): $(TARGET_CLIENT).cpp
 	$(CC) $(CFLAGS) $(TARGET_CLIENT).cpp -o $(TARGET_CLIENT) ../lib/MyLib.*
 
-
 clean:
 	$(RM) $(TARGET_COORD) $(TARGET_CLIENT)

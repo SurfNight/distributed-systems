@@ -3,7 +3,8 @@
 Em uma janela do terminal:
 
 ```shell
-make # para compilar os codigos
+make coordinator # para compilar o coordenador
+make client # para compilar o cliente
 
 sh ./coordinator # rodando o coordenador, os testes necessitam que ele esteja rodando previamente
 ```
