@@ -7,3 +7,6 @@ wait
 
 cp resultado.txt test_0/resultados.txt
  > resultado.txt
+
+cp coord.txt test_0/coord.txt
+ > coord.txt
