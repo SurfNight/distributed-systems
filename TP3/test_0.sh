@@ -1,7 +1,7 @@
 #!/bin/bash
 
-./cliente 2 10 127.0.0.1 &
-./cliente 2 10 127.0.0.1 &
+./client 2 10 127.0.0.1 &
+./client 2 10 127.0.0.1 &
 
 wait
 
