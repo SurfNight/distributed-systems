@@ -129,7 +129,6 @@ void terminal()
 int listener()
 {
     int server_fd;
-    char buffer[F];
     struct sockaddr_in addr;
     int addrlen = sizeof(addr);
 
@@ -168,6 +167,7 @@ int listener()
         }
         auto fconnection = [&, new_socket]()
         {
+            char buffer[F];
             while (true)
             {
                 int valread = read(new_socket, buffer, sizeof(char) * F);
