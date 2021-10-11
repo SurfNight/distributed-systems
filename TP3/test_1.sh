@@ -9,5 +9,3 @@ for i in 4 8 16 32; do
     cp resultado.txt test_1/resultados/$i.txt
      > resultado.txt
 done
-
-rm -f resultado.txt

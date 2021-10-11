@@ -5,5 +5,5 @@
 
 wait
 
-cp resultados.txt test_0/resultados.txt
-rm -f resultados.txt
+cp resultado.txt test_0/resultados.txt
+ > resultado.txt
