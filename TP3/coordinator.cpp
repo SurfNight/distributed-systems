@@ -30,7 +30,7 @@ private:
         mutexQ.pop();
         char *msg = encode(GRANT, get<0>(next));
         send(get<1>(next), msg, sizeof(char) * F, 0);
-        cout << "GRANTED to " << get<0>(next) << endl;
+        cout << to_string(get<0>(next)) + " GRANT\n";
         if (granted_map.find(get<0>(next)) == granted_map.end()) //se o processo ainda não está no mapa
         {
             granted_map[get<0>(next)] = 1;
@@ -47,6 +47,7 @@ public:
     void request(int p_id, int p_fd)
     {
         mtx.lock();
+        cout << to_string(p_id) + " REQUEST\n";
         mutexQ.push(make_tuple(p_id, p_fd));
         if (granted_map.find(p_id) == granted_map.end()) //se o processo ainda não está no mapa
         {
@@ -58,10 +59,10 @@ public:
         }
         mtx.unlock();
     }
-    void release()
+    void release(int p_id)
     {
         mtx.lock();
-        cout << "RELEASED" << endl;
+        cout << to_string(p_id) + " RELEASE\n";
         if (mutexQ.empty())
         {
             acquired = false;
@@ -186,8 +187,7 @@ int listener()
                 }
                 else if (msg == RELEASE)
                 {
-                    cout << process << " ";
-                    rmutex.release();
+                    rmutex.release(process);
                 }
                 else
                 {

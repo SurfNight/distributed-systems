@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
         auto current_time = chrono::high_resolution_clock::now();
         myfile << chrono::duration_cast<chrono::nanoseconds>(chrono::system_clock::now().time_since_epoch()).count() << "|" << getpid() << "\n";
         myfile.close();
-        rm.release();
         sleep(k);
+        rm.release();
     }
 }
