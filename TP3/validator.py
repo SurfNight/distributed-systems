@@ -78,16 +78,17 @@ def validate_number_of_writes(test_id, df, n):
             f"Número de escritas do teste {test_id}, com n = {n} foi errôneo e igual a {number_of_writes}, não {expected_number_of_writes}.")
 
 
-def validate_increasing(path):
+def validate_increasing(path, test_id):
     file = open(path)
     lines = file.readlines()
     last = -1
     for l in lines:
         new = int(l.split('|')[0])
         if new < last:
-            return False
+            print(f"No teste {test_id}, os valores não estão respeitando a ordem cronológica do sistema.")
+            return
         last = new
-    return True
+    print(f"No teste {test_id}, os valores estão respeitando a ordem cronológica do sistema.")
 
 
 def validate_execution(path):
@@ -103,10 +104,10 @@ def validate_execution(path):
             requests.append(int(splt[0]))
         else:
             if int(splt[0]) != requests[0] or int(splt[0]) != last_granted:
-                breakpoint()
-                return False
+                print("Ocorreu um problema de concorrência durante a execução dos testes por parte do coordenador")
+                return
             requests = requests[1:]
-    return True
+    print("Não ocorreram problemas de concorrência durante a execução dos testes por parte do coordenador.")
 
 
 def validate_test(test_id):
@@ -117,15 +118,14 @@ def validate_test(test_id):
         validate_number_of_lines(test_id, df_aux, n)
         validate_number_of_writes(test_id, df_aux, n)
         if test_id == 0:
-            print('test:', test_id, validate_increasing('test_0/resultados.txt'))
+            validate_increasing('test_0/resultados.txt', 0)
         else:
-            print('test:', test_id, 'n:', n, validate_increasing(
-                f"test_{test_id}/resultados/{n}.txt"))
+            validate_increasing(f"test_{test_id}/resultados/{n}.txt", test_id)
 
 
 if __name__ == '__main__':
     tests = list(range(0, 4))
-    print('coord:', validate_execution('coord.txt'))
+    validate_execution('coord.txt'))
 
     for test in tests:
         validate_test(test)

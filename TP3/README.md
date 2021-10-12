@@ -1,4 +1,4 @@
-# Para rodar os testes
+## Para rodar os estudos de caso
 
 Em uma janela do terminal:
 
@@ -16,4 +16,10 @@ sh test_0.sh
 sh test_1.sh
 sh test_2.sh
 sh test_3.sh
+```
+
+## Para rodar as validações dos estudos de caso
+
+```shell
+python validator.py
 ```
